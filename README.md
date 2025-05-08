@@ -1,5 +1,5 @@
 # Monitoramento-ZTE-C3X
-Monitoramento com intuito de monitorar OLT ZTE C3X
+Monitoramento com Objetivo de monitorar OLT ZTE C3X
 
 ![Dashboard C3X](https://github.com/user-attachments/assets/41e6547f-9ebd-4e82-9af9-cf5ba1a0f058)
 
