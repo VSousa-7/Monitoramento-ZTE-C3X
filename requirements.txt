@@ -1,0 +1,6 @@
+- Grafana 9.0
+- Zabbix 6.4
+- Mysql
+- Zabbix
+- Dynamic Text
+- Apache Echarts.
