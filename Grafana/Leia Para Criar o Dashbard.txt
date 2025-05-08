@@ -1,8 +1,8 @@
-Dashbord baseado em no Grafana v9.5.0 (4a2e069461)
+#Dashbord baseado em no Grafana v9.5.0 (4a2e069461)
 
-Utilização dos Data Sources e Plugins:
+#Utilização dos Data Sources e Plugins:
 
-- Mysql
-- Zabbix
-- Dynamic Text
-- Apache Echarts.
+# - Mysql
+# - Zabbix
+# - Dynamic Text
+# - Apache Echarts.
