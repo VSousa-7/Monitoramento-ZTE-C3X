@@ -1,0 +1,395 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 3bd52397696d4440985e8a0ec1050d43
+      name: ZTE-C3X
+  templates:
+    - uuid: f20ae9e9852044008a6f8a8f4902097b
+      template: 'Template ZTE C3X Gpon'
+      name: 'Template ZTE C3X Gpon'
+      description: OLT-ZTE (Testada na c3X e na versão 6X.)
+      groups:
+        - name: OLT-ZTE
+      items:
+        - uuid: 845effb3895d418d8601abbd229dc8f9
+          name: Temperatura
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.3902.1015.2.1.3.2.0
+          key: 1.3.6.1.4.1.3902.1015.2.1.3.2.0
+          history: 7d
+          units: C
+          tags:
+            - tag: Temperatura
+        - uuid: 16d8638630144b8d97499db05c560316
+          name: Uptime
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.3.0
+          key: system.uptime
+          history: 7d
+          trends: '0'
+          units: uptime
+          description: |
+            MIB: SNMPv2-MIB
+            The time (in hundredths of a second) since the network management portion of the system was last re-initialized.
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          tags:
+            - tag: Uptime
+      discovery_rules:
+        - uuid: 5ae1223fb71741daacde9e93d3547c96
+          name: 'Descoberta de Interfaces Opticas'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#IFALIAS},1.3.6.1.2.1.31.1.1.1.18,{#IFNAME},1.3.6.1.2.1.31.1.1.1.1,{#IFTYPE},1.3.6.1.2.1.2.2.1.3,{#TEMPERATURA},1.3.6.1.4.1.3902.1082.30.40.2.4.1.8]'
+          key: descoberta.interfaces.opticas.zte
+          delay: 1d
+          filter:
+            evaltype: AND
+            conditions:
+              - macro: '{#IFNAME}'
+                value: xgei
+                formulaid: A
+              - macro: '{#IFTYPE}'
+                value: '6'
+                formulaid: B
+              - macro: '{#TEMPERATURA}'
+                value: '2147483647'
+                operator: NOT_MATCHES_REGEX
+                formulaid: C
+          item_prototypes:
+            - uuid: 3ced60276d004b07959ec1cfb555b5cd
+              name: 'Interface {#IFNAME}: Sinal RX'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.2.{#SNMPINDEX}'
+              key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.2.[{#SNMPINDEX}]'
+              delay: 5m
+              history: 7d
+              value_type: FLOAT
+              units: dBm
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'return parseFloat(value).toFixed(2);'
+              tags:
+                - tag: 'Network Interfaces Sinal'
+            - uuid: 5939c04c3d9e4ac1a155a9e5017d1cae
+              name: 'Interface {#IFNAME}: Sinal TX'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.3.{#SNMPINDEX}'
+              key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.3.[{#SNMPINDEX}]'
+              delay: 5m
+              history: 7d
+              value_type: FLOAT
+              units: dBm
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'return parseFloat(value).toFixed(2);'
+              tags:
+                - tag: 'Network Interfaces Sinal'
+            - uuid: a7ccda002a724c919bb88511e0deeb60
+              name: 'Interface {#IFNAME}: Temperatura'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.8.{#SNMPINDEX}'
+              key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.8.[{#SNMPINDEX}]'
+              delay: 5m
+              history: 7d
+              units: C
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: 'Network Interfaces Temperatura'
+            - uuid: c45aa144b9184451b9dd5e72e186c8fd
+              name: 'Interface {#IFNAME}: Modelo'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.15.{#SNMPINDEX}'
+              key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.15.[{#SNMPINDEX}]'
+              delay: 1h
+              history: 7d
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+              tags:
+                - tag: 'Network Interfaces Modelo'
+            - uuid: 885d0ddb2283484ea8c5a90c4e3ac00b
+              name: 'Interface {#IFNAME}: Distancia'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.40.{#SNMPINDEX}'
+              key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.40.[{#SNMPINDEX}]'
+              delay: 1h
+              history: 7d
+              trends: '0'
+              units: km
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+              tags:
+                - tag: 'Network Interfaces Distancia'
+          graph_prototypes:
+            - uuid: 1223079e9ce74168b73171408967aa21
+              name: 'Interface {#IFNAME}: Sinal'
+              graph_items:
+                - color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: 'Template ZTE C3X Gpon'
+                    key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.2.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: 'Template ZTE C3X Gpon'
+                    key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.3.[{#SNMPINDEX}]'
+                - sortorder: '2'
+                  color: 2774A4
+                  calc_fnc: ALL
+                  item:
+                    host: 'Template ZTE C3X Gpon'
+                    key: '1.3.6.1.4.1.3902.1082.30.40.2.4.1.8.[{#SNMPINDEX}]'
+        - uuid: f77bcf3c078b4dcf81f0094c3540314f
+          name: 'Descobertas de Card'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#OLTCARD},1.3.6.1.4.1.3902.1082.10.1.2.4.1.4.1.1]'
+          key: descobertas.card.gpon.b
+          delay: 1d
+          item_prototypes:
+            - uuid: 4fe0020ed19d4f04887e58de575a93bb
+              name: 'Nome Card {#SNMPINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.10.1.2.4.1.4.1.1.{#SNMPINDEX}'
+              key: 'Card[{#SNMPINDEX}]'
+              delay: 5m
+              history: 15d
+              value_type: TEXT
+              trends: '0'
+              tags:
+                - tag: 'Nome Cards'
+        - uuid: 753cfa75433648dd8775472669c71684
+          name: 'Descobertas de CPU'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#OLTCPU},1.3.6.1.4.1.3902.1082.10.1.2.4.1.9.1.1]'
+          key: descobertas.cpu.gpon.b
+          delay: 1d
+          item_prototypes:
+            - uuid: 2ed66f4d14764b76abd8a871e6b0f9e6
+              name: 'Uso de CPU Card {#SNMPINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.10.1.2.4.1.9.1.1.{#SNMPINDEX}'
+              key: 'CPU.Card[{#SNMPINDEX}]'
+              history: 15d
+              units: '%'
+              tags:
+                - tag: 'Uso de CPU'
+        - uuid: 4ef29673001e47969e297b1cc93313c9
+          name: 'Descobertas de Interfaces Ethernet'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#OLTGI},1.3.6.1.2.1.31.1.1.1.1]'
+          key: descobertas.interfaces.gi.b
+          delay: 1d
+          filter:
+            conditions:
+              - macro: '{#OLTGI}'
+                value: gei
+                formulaid: A
+          item_prototypes:
+            - uuid: 0f423a5a1ff749e684f01164910f7384
+              name: 'Interface {#OLTGI}: Bits received'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}'
+              key: 'net.if.in[ifHCInOctets.{#SNMPINDEX}]'
+              delay: 3m
+              history: 7d
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+              tags:
+                - tag: 'Network Interfaces Bits'
+            - uuid: f5730228629544d8909b8cf6452ae1c0
+              name: 'Interface {#OLTGI}: Bits sent'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}'
+              key: 'net.if.out[ifHCOutOctets.{#SNMPINDEX}]'
+              delay: 3m
+              history: 7d
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+              tags:
+                - tag: 'Network Interfaces Bits'
+            - uuid: 26d042e503d64a9babc0953ee6d9bc1f
+              name: 'Interface {#OLTGI}: Speed'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.31.1.1.1.15.{#SNMPINDEX}'
+              key: 'net.if.speed[ifHighSpeed.{#SNMPINDEX}]'
+              delay: 5m
+              history: 7d
+              trends: '0'
+              units: bps
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1000000'
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1h
+              tags:
+                - tag: 'Network Interfaces Speed'
+            - uuid: 81d78536fc7548f28d497dddbdee4921
+              name: 'Interface {#OLTGI}: Operational status'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}'
+              key: 'net.if.status[ifOperStatus.{#SNMPINDEX}]'
+              history: 7d
+              tags:
+                - tag: 'Network Interfaces Status'
+        - uuid: 5ae96a3052344faeb814102e2586c360
+          name: 'Descobertas de Memoria'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#OLTCARD},1.3.6.1.4.1.3902.1082.10.1.2.4.1.11.1.1]'
+          key: descobertas.memoria.gpon.b
+          delay: 1d
+          item_prototypes:
+            - uuid: f1bd72a8e93b4e41a87d0d4e7bd935f6
+              name: 'Uso de Memoria Card {#SNMPINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.3902.1082.10.1.2.4.1.11.1.1.{#SNMPINDEX}'
+              key: 'Memoria.Card[{#SNMPINDEX}]'
+              history: 15d
+              tags:
+                - tag: 'Uso de Memoria'
+        - uuid: 9c54972427af41f6af4c47bf6c1b5584
+          name: 'Descobertas de Interfaces GPON'
+          type: EXTERNAL
+          key: zte_descoberta_pons.py
+          delay: 1d
+          description: |
+            268501248,gpon_1/1/1
+            268501504,gpon_1/1/2
+            268501760,gpon_1/1/3
+            268502016,gpon_1/1/4
+            268502272,gpon_1/1/5
+            268502528,gpon_1/1/6
+            268502784,gpon_1/1/7
+            268503040,gpon_1/1/8
+            268503296,gpon_1/1/9
+            268503552,gpon_1/1/10
+            268503808,gpon_1/1/11
+            268504064,gpon_1/1/12
+            268504320,gpon_1/1/13
+            268504576,gpon_1/1/14
+            268504832,gpon_1/1/15
+            268505088,gpon_1/1/16
+            268566784,gpon_1/2/1
+            268567040,gpon_1/2/2
+            268567296,gpon_1/2/3
+            268567552,gpon_1/2/4
+            268567808,gpon_1/2/5
+            268568064,gpon_1/2/6
+            268568320,gpon_1/2/7
+            268568576,gpon_1/2/8
+            268568832,gpon_1/2/9
+            268569088,gpon_1/2/10
+            268569344,gpon_1/2/11
+            268569600,gpon_1/2/12
+            268569856,gpon_1/2/13
+            268570112,gpon_1/2/14
+            268570368,gpon_1/2/15
+            268570624,gpon_1/2/16
+          item_prototypes:
+            - uuid: 8486e1beec604ed8ad2ab9e2ac71dfdd
+              name: 'PON {#INTERFACE}'
+              type: EXTERNAL
+              key: 'ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","1","{$SNMP_PORTA}"]'
+              delay: 5m
+              history: 7d
+              tags:
+                - tag: 'ONUs LOS'
+            - uuid: faf01c967f6e4a07930d23df9a603afb
+              name: 'PON {#INTERFACE}'
+              type: EXTERNAL
+              key: 'ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","3","{$SNMP_PORTA}"]'
+              delay: 5m
+              history: 7d
+              tags:
+                - tag: 'ONUs Onlines'
+              trigger_prototypes:
+                - uuid: f2dd060d87174cd191fea04a8c479e2e
+                  expression: |
+                    ((last(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","3","{$SNMP_PORTA}"],#2)+0.1)
+                    - last(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","3","{$SNMP_PORTA}"])
+                    )
+                    /
+                    (last(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","3","{$SNMP_PORTA}"],#2)+0.1)*100>={$LIMITE_QUEDA_ONUS}
+                    and
+                    change(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","3","{$SNMP_PORTA}"])<=-5
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: |
+                    avg(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","3","{$SNMP_PORTA}"],#5)>=
+                    avg(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","3","{$SNMP_PORTA}"],12h)
+                  name: 'Possível Queda de ONUs Onlines (-{$LIMITE_QUEDA_ONUS}): {#INTERFACE}'
+                  priority: AVERAGE
+                  manual_close: 'YES'
+            - uuid: d8a243b3afd64204b2d71a874ef3d7b2
+              name: 'PON {#INTERFACE}'
+              type: EXTERNAL
+              key: 'ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","4","{$SNMP_PORTA}"]'
+              delay: 5m
+              history: 7d
+              tags:
+                - tag: 'ONUs DyingGasp'
+            - uuid: 609158d029b44b59963be857d5041e74
+              name: 'PON {#INTERFACE}'
+              type: EXTERNAL
+              key: 'ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","6","{$SNMP_PORTA}"]'
+              delay: 5m
+              history: 7d
+              tags:
+                - tag: 'ONUs OFF'
+            - uuid: e712e13a029247d5b2edea398d0c2e3c
+              name: 'PON {#INTERFACE}'
+              type: EXTERNAL
+              key: 'ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","7","{$SNMP_PORTA}"]'
+              delay: 5m
+              history: 7d
+              tags:
+                - tag: 'ONUs Autorizadas'
+              trigger_prototypes:
+                - uuid: 24c27dcf169c47f999eb25d9c29d7a8e
+                  expression: 'avg(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","7","{$SNMP_PORTA}"],#3)>={$LIMITE_PON_ONUS}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'avg(/Template ZTE C3X Gpon/ponzte["{$SNMP_COMMUNITY}","{HOST.CONN}","{#ID}","7","{$SNMP_PORTA}"],#3)<={$LIMITE_PON_ONUS}'
+                  name: 'PON Próxima do Limite de ONUs (>{$LIMITE_PON_ONUS}): {#INTERFACE}'
+                  priority: AVERAGE
+                  manual_close: 'YES'
+      macros:
+        - macro: '{$LIMITE_PON_ONUS}'
+          value: '127'
+        - macro: '{$LIMITE_QUEDA_ONUS}'
+          value: '30'
+        - macro: '{$SNMP_COMMUNITY}'
+          value: public
+        - macro: '{$SNMP_PORTA}'
+          value: '161'
